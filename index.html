@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Youvit YCI — Design Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --or:#FF8322;--or2:#D96B0D;--orl:#FFF3E8;
+  --gr:#209848;--bg:#F8F7F4;--sur:#fff;
+  --bdr:rgba(0,0,0,.09);--bdr2:rgba(0,0,0,.16);
+  --tx:#1A1814;--tx2:#6B6560;--tx3:#A8A39D;
+  --r:14px;--rs:9px;--rp:100px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.6;min-height:100vh}
+
+nav{background:var(--sur);border-bottom:1px solid var(--bdr);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nb{display:flex;align-items:center;gap:12px}
+.nlogo{width:34px;height:34px;background:var(--or);border-radius:9px;display:flex;align-items:center;justify-content:center}
+.nlogo svg{width:20px;height:20px}
+.ntitle{font-family:'Syne',sans-serif;font-weight:800;font-size:16px}
+.nsep{width:1px;height:20px;background:var(--bdr2)}
+.nsub{font-size:12px;color:var(--tx3)}
+.nbadge{font-size:11px;font-weight:500;background:var(--orl);color:var(--or);padding:3px 11px;border-radius:var(--rp)}
+
+.w{max-width:900px;margin:0 auto;padding:36px 20px 80px}
+.ph{margin-bottom:28px;text-align:center}
+.ph h1{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;margin-bottom:8px}
+.ph p{font-size:14px;color:var(--tx2);max-width:480px;margin:0 auto}
+
+/* UPLOAD */
+.upload-section{margin-bottom:20px}
+.upcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.upzone{border:2.5px dashed var(--bdr2);border-radius:var(--r);margin:16px;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;cursor:pointer;transition:all .2s;background:var(--bg)}
+.upzone:hover,.upzone.drag{border-color:var(--or);background:var(--orl);transform:scale(1.005)}
+.upzone.done{border-style:solid;border-color:var(--or);padding:0;overflow:hidden;background:#111;min-height:unset}
+.upzone.done img{width:100%;max-height:420px;object-fit:contain;display:block}
+.up-ico{width:56px;height:56px;background:var(--orl);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.up-ico svg{width:28px;height:28px;stroke:var(--or);fill:none;stroke-width:1.8}
+.up-t{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin-bottom:6px}
+.up-h{font-size:12px;color:var(--tx3)}
+.up-types{display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.up-type{font-size:10px;padding:3px 9px;border-radius:var(--rp);border:1px solid var(--bdr2);color:var(--tx3)}
+.change-btn{display:none;width:100%;padding:8px;background:rgba(0,0,0,.5);color:#fff;border:none;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.upzone.done:hover .change-btn{display:block}
+
+/* CONTEXT */
+.ctx-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:0 16px 16px}
+@media(max-width:640px){.ctx-grid{grid-template-columns:1fr}}
+.ctx-sep{height:1px;background:var(--bdr);margin:0 16px 16px}
+.f label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);display:block;margin-bottom:4px}
+.f input,.f select,.f textarea{width:100%;padding:8px 11px;border:1px solid var(--bdr2);border-radius:var(--rs);font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);outline:none;transition:border-color .15s}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--or);background:#fff}
+.f textarea{resize:none;height:58px;line-height:1.5}
+
+/* BTN */
+.abtn{width:100%;padding:16px 24px;background:var(--or);color:#fff;border:none;border-radius:var(--r);font-family:'Syne',sans-serif;font-weight:800;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s;letter-spacing:.02em;margin-bottom:20px}
+.abtn:hover:not(:disabled){background:var(--or2);transform:translateY(-1px)}
+.abtn:disabled{background:#CCC;cursor:not-allowed;transform:none}
+.abtn svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;flex-shrink:0}
+
+/* ERR */
+.errb{display:none;background:#FFF0EE;border:1px solid #FFBCB0;border-radius:var(--rs);padding:12px 16px;font-size:12px;color:#CC2200;margin-bottom:14px;line-height:1.6;white-space:pre-wrap}
+.errb.show{display:block}
+
+/* LOADING */
+.lcard{display:none;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:36px 20px;text-align:center;margin-bottom:20px}
+.lcard.show{display:flex;flex-direction:column;align-items:center}
+.limg{width:80px;height:80px;border-radius:var(--r);overflow:hidden;margin-bottom:20px;border:2px solid var(--bdr)}
+.limg img{width:100%;height:100%;object-fit:cover}
+.dots{display:flex;justify-content:center;gap:7px;margin-bottom:14px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--or);animation:bop .8s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.16s}
+.dot:nth-child(3){animation-delay:.32s}
+@keyframes bop{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.lstage{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;margin-bottom:4px}
+.lsub{font-size:12px;color:var(--tx3)}
+.lprog{width:280px;height:4px;background:var(--bdr2);border-radius:var(--rp);margin-top:20px;overflow:hidden}
+.lproginr{height:100%;background:var(--or);border-radius:var(--rp);width:0%;transition:width .8s ease}
+
+/* RESULT */
+.res{display:none}
+.res.show{display:block;animation:fadeup .4s ease}
+@keyframes fadeup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* SCORE HERO */
+.shero{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+.sht{padding:24px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--bdr)}
+.sleft{display:flex;align-items:flex-end;gap:16px}
+.sthumb{width:64px;height:64px;border-radius:10px;overflow:hidden;border:2px solid var(--bdr);flex-shrink:0}
+.sthumb img{width:100%;height:100%;object-fit:cover}
+.snum{font-family:'Syne',sans-serif;font-weight:800;font-size:64px;line-height:1;transition:color .4s}
+.sden{font-family:'Syne',sans-serif;font-weight:400;font-size:24px;color:var(--tx3)}
+.slbl{font-size:11px;color:var(--tx3);margin-top:3px}
+.vpill{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;padding:10px 24px;border-radius:var(--rp);display:inline-block;margin-bottom:6px}
+.vnote{font-size:11px;color:var(--tx3);text-align:right}
+
+/* BREAKDOWN */
+.bkrow{display:grid;grid-template-columns:repeat(5,1fr)}
+@media(max-width:540px){.bkrow{grid-template-columns:repeat(3,1fr)}}
+.bkc{padding:14px 8px;text-align:center;border-right:1px solid var(--bdr)}
+.bkc:last-child{border-right:none}
+.bkp{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;line-height:1}
+.bko{font-size:10px;color:var(--tx3);margin-top:1px}
+.bkbb{height:4px;background:var(--bg);border-radius:var(--rp);margin:8px 0 6px}
+.bkbf{height:100%;border-radius:var(--rp);transition:width .8s ease}
+.bkn{font-size:10px;color:var(--tx3);line-height:1.3}
+
+/* DETAIL */
+.dg2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:640px){.dg2{grid-template-columns:1fr}}
+.dc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.dcth{padding:12px 16px;border-bottom:1px solid var(--bdr);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);display:flex;align-items:center;gap:8px}
+.chip{font-size:10px;font-weight:500;padding:2px 8px;background:var(--orl);color:var(--or);border-radius:var(--rp)}
+.crrows{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.crrow{}
+.crh{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.crn{font-weight:500;font-size:13px}
+.crs{font-family:'Syne',sans-serif;font-weight:800;font-size:14px}
+.crbb{height:4px;background:var(--bg);border-radius:var(--rp);margin-bottom:6px}
+.crbf{height:100%;border-radius:var(--rp);transition:width .8s ease}
+.crf{font-size:12px;color:var(--tx2);line-height:1.5}
+.alist{padding:4px 16px 4px}
+.aitem{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--bdr)}
+.aitem:last-child{border-bottom:none}
+.anum{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;color:#fff;margin-top:1px}
+.atxt{font-size:12px;color:var(--tx2);line-height:1.5}
+
+/* VERDICT */
+.vcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+.vstripe{height:5px;background:var(--or)}
+.vbody{padding:16px 20px;font-size:13px;color:var(--tx2);line-height:1.75}
+
+/* ACTIONS */
+.ract{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:9px 20px;border-radius:var(--rs);cursor:pointer;border:1px solid var(--bdr2);background:transparent;color:var(--tx);transition:all .15s}
+.btn:hover{background:var(--bg)}
+.btn.pr{background:var(--or);border-color:var(--or);color:#fff}
+.btn.pr:hover{background:var(--or2)}
+.rpout{display:none;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.rpout.show{display:block}
+.rph{padding:12px 18px;border-bottom:1px solid var(--bdr);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3)}
+.rpout pre{padding:16px 18px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--tx2);white-space:pre-wrap;line-height:1.8}
+
+footer{text-align:center;padding:24px;font-size:11px;color:var(--tx3);border-top:1px solid var(--bdr);margin-top:32px}
+footer b{color:var(--or)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nb">
+    <div class="nlogo">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="10" r="5" fill="#fff"/>
+        <path d="M6 28c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="ntitle">Youvit</div>
+    <div class="nsep"></div>
+    <div class="nsub">Creative Index Audit</div>
+  </div>
+  <div class="nbadge">AI-Powered · Free to Use</div>
+</nav>
+
+<div class="w">
+  <div class="ph">
+    <h1>Drop your design. Get your YCI score.</h1>
+    <p>Upload any Youvit design — the AI Creative Director scores it against the full 2024 Brand Guidelines instantly.</p>
+  </div>
+
+  <div class="upload-section">
+    <div class="upcard">
+      <div class="upzone" id="upz" onclick="document.getElementById('fi').click()">
+        <div class="up-ico">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="up-t">Drop your design here</div>
+        <div class="up-h">or click to browse your files</div>
+        <div class="up-types">
+          <span class="up-type">Key Visual</span>
+          <span class="up-type">Social Media</span>
+          <span class="up-type">Banner</span>
+          <span class="up-type">POSM</span>
+          <span class="up-type">Marketplace</span>
+          <span class="up-type">Packaging</span>
+        </div>
+      </div>
+      <div class="ctx-sep" id="ctxSep" style="display:none"></div>
+      <div class="ctx-grid" id="ctxGrid" style="display:none">
+        <div class="f">
+          <label>Output type</label>
+          <select id="otype">
+            <option value="">Select type...</option>
+            <option>Key Visual — Social Media</option>
+            <option>Key Visual — Print / OOH</option>
+            <option>Digital Banner / Web Banner</option>
+            <option>Instagram Story / Reels</option>
+            <option>Marketplace Thumbnail</option>
+            <option>POSM / Shelf Talker</option>
+            <option>Packaging Design</option>
+            <option>Organic Social Content</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Product &amp; category</label>
+          <input type="text" id="ctxP" placeholder="e.g. Beauti+, pink, Biotin + Ginseng" />
+        </div>
+        <div class="f">
+          <label>Campaign notes</label>
+          <input type="text" id="ctxN" placeholder="e.g. Ramadan KV, new launch" />
+        </div>
+      </div>
+    </div>
+    <input type="file" id="fi" accept="image/*" style="display:none" onchange="handleFile(event)"/>
+  </div>
+
+  <div class="errb" id="errb"></div>
+  <button class="abtn" id="abtn" onclick="runAudit()" disabled>
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    Analyze with AI Creative Director
+  </button>
+
+  <div class="lcard" id="lcard">
+    <div class="limg" id="limg"></div>
+    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="lstage" id="lstage">Sending to AI Creative Director...</div>
+    <div class="lsub" id="lsub">Checking brand color accuracy</div>
+    <div class="lprog"><div class="lproginr" id="lprog"></div></div>
+  </div>
+
+  <div class="res" id="res">
+    <div class="shero">
+      <div class="sht">
+        <div class="sleft">
+          <div class="sthumb" id="sthumb"></div>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:4px">
+              <div class="snum" id="rscore">—</div>
+              <div class="sden">/100</div>
+            </div>
+            <div class="slbl">Youvit Creative Index Score</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="vpill" id="rpill">—</div>
+          <div class="vnote" id="rnote"></div>
+        </div>
+      </div>
+      <div class="bkrow" id="rbk"></div>
+    </div>
+
+    <div class="dg2">
+      <div class="dc">
+        <div class="dcth">Criterion scores <span class="chip">AI analysis</span></div>
+        <div class="crrows" id="rcrit"></div>
+      </div>
+      <div class="dc">
+        <div class="dcth" style="padding:12px 16px;border-bottom:1px solid var(--bdr)">Priority action items <span class="chip">Fix these first</span></div>
+        <div class="alist" id="ract"></div>
+      </div>
+    </div>
+
+    <div class="vcard">
+      <div class="vstripe" id="vstripe"></div>
+      <div class="dcth" style="padding:12px 20px;border-bottom:1px solid var(--bdr)">Creative Director verdict</div>
+      <div class="vbody" id="rverdict"></div>
+    </div>
+
+    <div class="ract">
+      <button class="btn pr" onclick="genReport()">Generate full report</button>
+      <button class="btn" onclick="copyRep()">Copy report</button>
+      <button class="btn" onclick="resetAll()">Audit new design</button>
+    </div>
+    <div class="rpout" id="rpout">
+      <div class="rph">Audit report — ready to copy &amp; share</div>
+      <pre id="rptxt"></pre>
+    </div>
+  </div>
+</div>
+
+<footer>Youvit Creative Index · Internal Brand Audit Tool · Built for <b>Youvit Creative Team</b> · Powered by Claude Vision</footer>
+
+<script>
+const CRIT=[
+  {id:'brand',   name:'Brand Alignment',           weight:25},
+  {id:'visual',  name:'Visual Impact & Creativity', weight:20},
+  {id:'message', name:'Message Clarity',            weight:20},
+  {id:'product', name:'Product Heroing',            weight:20},
+  {id:'exec',    name:'Technical Execution',        weight:15},
+];
+const VERD=[
+  {min:90,label:'YCI Gold',          bg:'#FFF8E0',col:'#7A5C00',note:'Exceptional — ready to publish/produce as-is'},
+  {min:75,label:'Approved',          bg:'#E8F8EE',col:'#1A7A40',note:'Meets Youvit standards. Minor tweaks optional'},
+  {min:60,label:'Revise & Resubmit', bg:'#FFF3E0',col:'#8A4500',note:'Good base — key areas need improvement'},
+  {min:40,label:'Major Revision',    bg:'#FFEEEE',col:'#8A1A00',note:'Significant rework required before approval'},
+  {min:0, label:'Not Acceptable',    bg:'#FFE0E0',col:'#5C0000',note:'Does not meet YCI standards — please restart'},
+];
+const ACOLS=['#CC2200','#D07000','#1D9E75','#2060CC'];
+
+let b64=null, imgSrc=null, auditR=null;
+
+
+function sc(v){return v>=8?'#1D9E75':v>=6?'#3B8A00':v>=4?'#D07000':'#CC2200'}
+
+function handleFile(e){
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    imgSrc=ev.target.result;
+    b64=imgSrc.split(',')[1];
+    const z=document.getElementById('upz');
+    z.classList.add('done');
+    z.innerHTML=`<img src="${imgSrc}" alt="Design"/><button class="change-btn" onclick="event.stopPropagation();document.getElementById('fi').click()">Change image</button>`;
+    document.getElementById('ctxSep').style.display='block';
+    document.getElementById('ctxGrid').style.display='grid';
+    document.getElementById('abtn').disabled=false;
+    document.getElementById('errb').classList.remove('show');
+  };
+  reader.readAsDataURL(file);
+}
+
+const upz=document.getElementById('upz');
+upz.addEventListener('dragover',e=>{e.preventDefault();if(!upz.classList.contains('done'))upz.classList.add('drag')});
+upz.addEventListener('dragleave',()=>upz.classList.remove('drag'));
+upz.addEventListener('drop',e=>{
+  e.preventDefault();upz.classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('image/')){
+    const dt=new DataTransfer();dt.items.add(f);
+    document.getElementById('fi').files=dt.files;
+    handleFile({target:{files:[f]}});
+  }
+});
+
+async function runAudit(){
+  if(!b64)return;
+  const errb=document.getElementById('errb');
+  errb.classList.remove('show');
+  const otype=document.getElementById('otype').value||'Design output';
+  const ctxP=document.getElementById('ctxP').value;
+  const ctxN=document.getElementById('ctxN').value;
+
+  document.getElementById('abtn').disabled=true;
+  const lcard=document.getElementById('lcard');
+  lcard.classList.add('show');
+  document.getElementById('res').classList.remove('show');
+  document.getElementById('rpout').classList.remove('show');
+
+  const li=document.getElementById('limg');
+  if(imgSrc)li.innerHTML=`<img src="${imgSrc}" alt=""/>`;
+
+  const stages=[
+    ['Analyzing brand color accuracy...','Checking palette matches product category',10],
+    ['Evaluating logo & layout structure...','Verifying placement, Halal badge, grid',25],
+    ['Reviewing typography & tone...','Agrandir headlines, Inter body copy',45],
+    ['Auditing product heroing...','Product visibility, ingredients, photography',65],
+    ['Calculating weighted YCI score...','Compiling Creative Director feedback',85],
+  ];
+  let si=0;
+  const prog=document.getElementById('lprog');
+  const stgi=setInterval(()=>{
+    si=(si+1)%stages.length;
+    document.getElementById('lstage').textContent=stages[si][0];
+    document.getElementById('lsub').textContent=stages[si][1];
+    prog.style.width=stages[si][2]+'%';
+  },2400);
+
+  const SYS=`You are the Senior Creative Director for Youvit, Indonesia's #1 Vitamin Gummy. Conduct a rigorous YCI (Youvit Creative Index) brand audit.
+
+BRAND COLORS BY PRODUCT:
+- Adult Multivitamin/Brand: Orange #FF8322 (primary), Green #209848, Yellow #FFCA2F
+- Beauti+ (Hair/Beauty): Pink #ED106A, Light Pink #FF7396
+- AcNo (Acne): Salmon #F25C5C, Dark #EC2F3C
+- Collagen gummy: Red #EC174E, Dark Red #AE0737, Grape #C575B0
+- Collagen powder: Grape-Pink #C575B0, Dark Red #AE0737
+- Biotin for Men: Dark Teal #005D57, Navy #00293D
+- Kids Multivitamin: Blue #0098E7, Light Blue #42B4E7
+- Omega-3 Kids: Blue #0098E7 + Yellow #EEDD46
+- Vitamin A+Lutein Kids: Blue #0098E7, Cyan #81D3F6
+- Curcuma Kids: Green #06A74B, Lime #B6CC32
+- Herb & Vitamin: Green #37B34A, Dark Green #008F52
+- ACV: Yellow #F7AA20, Red #EC1E24
+- EzZleep: Purple #663399, Lavender #B1B1D9
+- FibreFix: Green #63CE51, Yellow #FFCD05
+
+TYPOGRAPHY: Agrandir = headlines only (bold/heavy, max 3 lines). Inter = all body copy. NO other fonts.
+
+LOGO: Always top-left, inside white rounded rectangle container. Halal icon always top-right.
+
+KV REQUIRED ELEMENTS (priority order):
+1. Youvit logo top-left in white rounded container
+2. Halal icon top-right
+3. Talent photography in rounded circular container
+4. Monochromatic gradient background (product primary color light to dark)
+5. Headline: Agrandir Heavy max 3 lines
+6. Sub-headline: Inter Bold
+7. Three USP icons: 1 Gummy Setiap Hari + Bahan Alami + Disarankan Ahli Gizi
+8. Product packshot large and prominent
+9. #1 Vitamin Gummy circular badge (color matches category)
+
+PHOTOGRAPHY: Talent excited/happy, wardrobe matches product category color, bright monochromatic BG, product visible in scene, natural elements present.
+
+TONE: Playful Bahasa/mixed, wordplay. Good: "Hempasin Rontok Siap NgeRock!", "Break Free dari Breakout". Never fear mongering, never clinical.
+
+SCORE EACH 0-10 (strict — 8+ = truly excellent only):
+brand (25%): palette, typography, logo placement, Halal badge, #1 badge, brand personality
+visual (20%): thumb-stopping, visual hierarchy, photography energy, layout quality
+message (20%): single headline max 3 lines, sub-headline, USP icons readable, CTA
+product (20%): packshot prominent/appetizing, ingredients visible, gummy shown
+exec (15%): composition, legibility, proportions, no errors
+
+Return ONLY valid JSON, no markdown:
+{"scores":{"brand":N,"visual":N,"message":N,"product":N,"exec":N},"feedback":{"brand":"...","visual":"...","message":"...","product":"...","exec":"..."},"action_items":["fix 1","fix 2","fix 3","fix 4"],"verdict":"2-3 sentence Creative Director verdict"}`;
+
+  try{
+    const r=await fetch('/api/audit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-opus-4-5',
+        max_tokens:1200,
+        system:SYS,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+          {type:'text',text:`Audit this Youvit design.\nOutput type: ${otype}\n${ctxP?'Product: '+ctxP:''}\n${ctxN?'Notes: '+ctxN:''}`}
+        ]}]
+      })
+    });
+    clearInterval(stgi);
+    prog.style.width='100%';
+    setTimeout(()=>lcard.classList.remove('show'),400);
+    if(!r.ok){
+      const ed=await r.json().catch(()=>({}));
+      throw new Error(ed.error?.message||'API error '+r.status);
+    }
+    const data=await r.json();
+    let raw=data.content.map(c=>c.text||'').join('');
+    raw=raw.replace(/```json|```/g,'').trim();
+    auditR=JSON.parse(raw);
+    renderResult(auditR);
+  }catch(e){
+    clearInterval(stgi);
+    lcard.classList.remove('show');
+    document.getElementById('abtn').disabled=false;
+    errb.textContent='Audit failed: '+e.message;
+    errb.classList.add('show');
+  }
+}
+
+function renderResult(r){
+  const s=r.scores;
+  let w=0; CRIT.forEach(c=>{w+=s[c.id]*c.weight;});
+  const tot=Math.round(w/10);
+  const v=VERD.find(v=>tot>=v.min);
+  const col=tot>=75?'#1D9E75':tot>=60?'#D07000':'#CC2200';
+
+  document.getElementById('rscore').textContent=tot;
+  document.getElementById('rscore').style.color=col;
+  const pill=document.getElementById('rpill');
+  pill.textContent=v.label;pill.style.background=v.bg;pill.style.color=v.col;
+  document.getElementById('rnote').textContent=v.note;
+  document.getElementById('vstripe').style.background=v.col;
+  if(imgSrc)document.getElementById('sthumb').innerHTML=`<img src="${imgSrc}" alt=""/>`;
+
+  const bk=document.getElementById('rbk');bk.innerHTML='';
+  CRIT.forEach(c=>{
+    const sv=s[c.id],pts=Math.round(sv*c.weight/10),cl=sc(sv);
+    const d=document.createElement('div');d.className='bkc';
+    d.innerHTML=`<div class="bkp" style="color:${cl}">${pts}</div><div class="bko">of ${c.weight}</div><div class="bkbb"><div class="bkbf" style="width:${sv*10}%;background:${cl}"></div></div><div class="bkn">${c.name}</div>`;
+    bk.appendChild(d);
+  });
+
+  const cr=document.getElementById('rcrit');cr.innerHTML='';
+  CRIT.forEach(c=>{
+    const sv=s[c.id],cl=sc(sv),fb=r.feedback[c.id]||'';
+    const d=document.createElement('div');d.className='crrow';
+    d.innerHTML=`<div class="crh"><span class="crn">${c.name} <span style="font-size:10px;font-weight:400;color:var(--tx3)">${c.weight}%</span></span><span class="crs" style="color:${cl}">${sv}/10</span></div><div class="crbb"><div class="crbf" style="width:${sv*10}%;background:${cl}"></div></div><div class="crf">${fb}</div>`;
+    cr.appendChild(d);
+  });
+
+  const ac=document.getElementById('ract');ac.innerHTML='';
+  (r.action_items||[]).forEach((item,i)=>{
+    const d=document.createElement('div');d.className='aitem';
+    d.innerHTML=`<div class="anum" style="background:${ACOLS[i%ACOLS.length]}">${i+1}</div><div class="atxt">${item}</div>`;
+    ac.appendChild(d);
+  });
+
+  document.getElementById('rverdict').textContent=r.verdict||'';
+  document.getElementById('res').classList.add('show');
+  document.getElementById('abtn').disabled=false;
+  document.getElementById('res').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function genReport(){
+  if(!auditR)return;
+  const otype=document.getElementById('otype').value||'—';
+  const ctxP=document.getElementById('ctxP').value||'—';
+  const date=new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const s=auditR.scores;
+  let w=0;CRIT.forEach(c=>{w+=s[c.id]*c.weight;});const tot=Math.round(w/10);
+  const v=VERD.find(v=>tot>=v.min);
+  const L=[
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    '  YOUVIT CREATIVE INDEX — AUDIT REPORT',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━','',
+    `Output Type  : ${otype}`,`Product      : ${ctxP}`,`Audit Date   : ${date}`,'',
+    '────────────────────────────────────────','  CRITERION SCORES','────────────────────────────────────────',
+  ];
+  CRIT.forEach(c=>{
+    const sv=s[c.id],pts=Math.round(sv*c.weight/10),bar='█'.repeat(sv)+'░'.repeat(10-sv);
+    L.push('',`${c.name} (${c.weight}%)`,`Score: ${sv}/10 → ${pts} pts  [${bar}]`,`Note:  ${auditR.feedback[c.id]||'—'}`);
+  });
+  L.push('','────────────────────────────────────────','  FINAL YCI SCORE','────────────────────────────────────────','',
+    `  Total : ${tot} / 100`,`  Verdict: ${v.label.toUpperCase()}`,`  Status : ${v.note}`,'',
+    '────────────────────────────────────────','  ACTION ITEMS','────────────────────────────────────────','');
+  (auditR.action_items||[]).forEach((a,i)=>L.push(`  ${i+1}. ${a}`));
+  L.push('','────────────────────────────────────────','  CREATIVE DIRECTOR VERDICT','────────────────────────────────────────','',
+    `  ${auditR.verdict||'—'}`,'',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━','  YCI Audit · Youvit Creative Team','━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  document.getElementById('rptxt').textContent=L.join('\n');
+  document.getElementById('rpout').classList.add('show');
+  document.getElementById('rpout').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function copyRep(){
+  genReport();
+  const t=document.getElementById('rptxt').textContent;
+  navigator.clipboard.writeText(t).then(()=>{
+    const btn=event.target,o=btn.textContent;
+    btn.textContent='Copied!';setTimeout(()=>btn.textContent=o,1500);
+  });
+}
+
+function resetAll(){
+  b64=null;imgSrc=null;auditR=null;
+  const z=document.getElementById('upz');
+  z.classList.remove('done','drag');
+  z.innerHTML='<div class="up-ico"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="up-t">Drop your design here</div><div class="up-h">or click to browse your files</div><div class="up-types"><span class="up-type">Key Visual</span><span class="up-type">Social Media</span><span class="up-type">Banner</span><span class="up-type">POSM</span><span class="up-type">Marketplace</span><span class="up-type">Packaging</span></div>';
+  document.getElementById('fi').value='';
+  document.getElementById('ctxSep').style.display='none';
+  document.getElementById('ctxGrid').style.display='none';
+  ['otype','ctxP','ctxN'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('abtn').disabled=true;
+  document.getElementById('res').classList.remove('show');
+  document.getElementById('rpout').classList.remove('show');
+  document.getElementById('errb').classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
