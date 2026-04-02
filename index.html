@@ -47,7 +47,7 @@ nav{background:var(--sur);border-bottom:1px solid var(--bdr);padding:0 28px;heig
 .upzone.done:hover .change-btn{display:block}
 
 /* CONTEXT */
-.ctx-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:0 16px 16px}
+.ctx-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:0 16px 16px;row-gap:10px}
 @media(max-width:640px){.ctx-grid{grid-template-columns:1fr}}
 .ctx-sep{height:1px;background:var(--bdr);margin:0 16px 16px}
 .f label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);display:block;margin-bottom:4px}
@@ -108,6 +108,11 @@ nav{background:var(--sur);border-bottom:1px solid var(--bdr);padding:0 28px;heig
 .bkbf{height:100%;border-radius:var(--rp);transition:width .8s ease}
 .bkn{font-size:10px;color:var(--tx3);line-height:1.3}
 
+.atbl-status{display:none;font-size:12px;padding:9px 14px;border-radius:var(--rs);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.atbl-status.saving{background:#FFF3E8;color:#CC6600;border:1px solid #FFCCA0}
+.atbl-status.saved{background:#E8F8EE;color:#1A7A40;border:1px solid #9FE1CB}
+.atbl-status.failed{background:#FFF0EE;color:#CC2200;border:1px solid #FFBCB0}
+.atbl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 /* DETAIL */
 .dg2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 @media(max-width:640px){.dg2{grid-template-columns:1fr}}
@@ -191,6 +196,14 @@ footer b{color:var(--or)}
       <div class="ctx-sep" id="ctxSep" style="display:none"></div>
       <div class="ctx-grid" id="ctxGrid" style="display:none">
         <div class="f">
+          <label>Designer name <span style="color:#CC2200">*</span></label>
+          <input type="text" id="designerName" placeholder="e.g. Rizky Pratama" />
+        </div>
+        <div class="f">
+          <label>Project / campaign <span style="color:#CC2200">*</span></label>
+          <input type="text" id="projectName" placeholder="e.g. Q3 Beauti+ KV" />
+        </div>
+        <div class="f">
           <label>Output type</label>
           <select id="otype">
             <option value="">Select type...</option>
@@ -209,7 +222,7 @@ footer b{color:var(--or)}
           <label>Product &amp; category</label>
           <input type="text" id="ctxP" placeholder="e.g. Beauti+, pink, Biotin + Ginseng" />
         </div>
-        <div class="f">
+        <div class="f" style="grid-column:span 2">
           <label>Campaign notes</label>
           <input type="text" id="ctxN" placeholder="e.g. Ramadan KV, new launch" />
         </div>
@@ -219,6 +232,7 @@ footer b{color:var(--or)}
   </div>
 
   <div class="errb" id="errb"></div>
+  <div class="atbl-status" id="atblStatus"></div>
   <button class="abtn" id="abtn" onclick="runAudit()" disabled>
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
     Analyze with AI Creative Director
@@ -515,6 +529,8 @@ function renderResult(r){
   document.getElementById('res').classList.add('show');
   document.getElementById('abtn').disabled=false;
   document.getElementById('res').scrollIntoView({behavior:'smooth',block:'start'});
+  saveToAirtable(r, tot, v.label);
+  saveToSheets(r, tot, v.label);
 }
 
 function genReport(){
@@ -571,6 +587,95 @@ function resetAll(){
   document.getElementById('rpout').classList.remove('show');
   document.getElementById('errb').classList.remove('show');
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showAtblStatus(type, msg){
+  const el=document.getElementById('atblStatus');
+  el.className='atbl-status '+type;
+  const dotCol=type==='saved'?'#1D9E75':type==='saving'?'#D07000':'#CC2200';
+  el.innerHTML=`<div class="atbl-dot" style="background:${dotCol}"></div><span>${msg}</span>`;
+  el.style.display='flex';
+  if(type==='saved') setTimeout(()=>el.style.display='none', 4000);
+}
+
+async function saveToAirtable(r, total, verdict){
+  const designer=document.getElementById('designerName').value.trim();
+  const project=document.getElementById('projectName').value.trim();
+  const otype=document.getElementById('otype').value||'—';
+  const ctxP=document.getElementById('ctxP').value||'—';
+  if(!designer&&!project) return;
+  showAtblStatus('saving','Saving to Airtable...');
+  const fields={
+    'Designer Name': designer||'Unknown',
+    'Project Name': project||'Untitled',
+    'Output Type': otype,
+    'Product & Category': ctxP,
+    'YCI Total Score': total,
+    'Verdict': verdict,
+    'Brand Alignment': r.scores.brand,
+    'Visual Impact': r.scores.visual,
+    'Message Clarity': r.scores.message,
+    'Product Heroing': r.scores.product,
+    'Technical Execution': r.scores.exec,
+    'CD Approval Status': 'Pending Review',
+    'Audit Date': new Date().toISOString().split('T')[0],
+    'AI Verdict Notes': r.verdict||'',
+    'Action Items': (r.action_items||[]).join('\n'),
+  };
+  try{
+    const resp=await fetch('/api/airtable',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({fields})
+    });
+    const data=await resp.json();
+    if(resp.ok && data.id){
+      showAtblStatus('saved','Saved to Airtable — awaiting CD approval');
+    } else {
+      showAtblStatus('failed','Airtable save failed: '+(data.error?.message||'check token/base config'));
+    }
+  }catch(e){
+    showAtblStatus('failed','Airtable save failed: '+e.message);
+  }
+}
+
+async function saveToSheets(r, total, verdict){
+  const designer = document.getElementById('designerName') ?
+    document.getElementById('designerName').value.trim() : '';
+  const project  = document.getElementById('projectName') ?
+    document.getElementById('projectName').value.trim() : '';
+  const otype    = document.getElementById('otype').value || '';
+  const ctxP     = document.getElementById('ctxP').value  || '';
+  const now      = new Date();
+  const dateStr  = now.toLocaleDateString('id-ID',{year:'numeric',month:'short',day:'numeric'});
+  const timeStr  = now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+
+  const payload = {
+    timestamp:        dateStr + ' ' + timeStr,
+    designer_name:    designer  || 'Unknown',
+    project_name:     project   || 'Untitled',
+    output_type:      otype,
+    product_category: ctxP,
+    yci_total_score:  total,
+    verdict:          verdict,
+    brand_alignment:  r.scores.brand,
+    visual_impact:    r.scores.visual,
+    message_clarity:  r.scores.message,
+    product_heroing:  r.scores.product,
+    tech_execution:   r.scores.exec,
+    action_items:     (r.action_items||[]).join(' | '),
+    ai_verdict:       r.verdict || '',
+  };
+
+  try {
+    await fetch('/api/sheets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    console.warn('Sheets save failed:', e.message);
+  }
 }
 </script>
 </body>
